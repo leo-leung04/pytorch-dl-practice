@@ -55,15 +55,15 @@ class NeuralNetwork(nn.Module):
         # flatten the image to a vector
         self.flatten = nn.Flatten()
         self.linear_relu_stack = nn.Sequential(
-            # 1st layer fully connected
+            # 1st fully connected layer 
             nn.Linear(28*28, 512),
             # activation function
             nn.ReLU(),
-            # 2nd layer fully connected
+            # 2nd fully connected layer
             nn.Linear(512, 512),
             # activation function
             nn.ReLU(),
-            # 3rd layer fully connected
+            # 3rd fully connected layer
             nn.Linear(512, 10)
         )
     
@@ -126,7 +126,44 @@ def test(dataloader, model, loss_fn):
     
 # train the model
 epochs = 5
-for t in range(epochs);
+for t in range(epochs):
     print(f"Epoch {t+1}\n-------------------------------")
+    # train and test the model in every epoch
     train(train_dataloader, model, loss_fn, optimizer)
     test(test_dataloader, model, loss_fn)
+
+#####################
+# saving models
+#####################
+
+torch.save(model.state_dict(), "model.pth")
+print("Saved PyTorch Model State to model.pth")
+
+#####################
+# loading models
+#####################
+
+model = NeuralNetwork().to(device)
+model.load_state_dict(torch.load("model.pth", weights_only=True))
+
+# use the model to make predictions
+classes = [
+    "T-shirt/top",
+    "Trouser",
+    "Pullover",
+    "Dress",
+    "Coat",
+    "Sandal",
+    "Shirt",
+    "Sneaker",
+    "Bag",
+    "Ankle boot",
+]
+
+model.eval()
+x, y = test_data[0][0], test_data[0][1]
+with torch.no_grad():
+    x = x.to(device)
+    pred = model(x)
+    predicted, actual = classes[pred[0].argmax(0)], classes[y]
+    print(f'Predicted: "{predicted}", Actual: "{actual}"')
